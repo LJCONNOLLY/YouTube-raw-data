@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Algorithmic Bias Dashboard - D3.js</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .controls label {
+            margin-right: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .controls select, .controls input {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin-right: 20px;
+            font-size: 14px;
+        }
+
+        .controls button {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .controls button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .chart {
+            width: 100%;
+            height: 400px;
+        }
+
+        .heatmap-chart {
+            height: 500px;
+        }
+
+        .tooltip {
+            position: absolute;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            border-radius: 8px;
+            pointer-events: none;
+            font-size: 14px;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .file-upload {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .file-upload label {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .file-upload label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .axis text {
+            font-size: 12px;
+        }
+
+        .axis path,
+        .axis line {
+            stroke: #ccc;
+        }
+
+        .bar {
+            transition: opacity 0.2s;
+        }
+
+        .bar:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>YouTube Algorithmic Bias Dashboard</h1>
+            <p>Interactive D3.js visualization of racial distribution and algorithmic patterns in YouTube content</p>
+        </header>
+
+        <div class="file-upload">
+            <label for="csvFile">
+                <span id="fileName">Choose CSV File</span>
+            </label>
+            <input type="file" id="csvFile" accept=".csv">
+            <p style="margin-top: 10px; color: #666;">Upload your YouTube data CSV to generate visualizations</p>
+        </div>
+
+        <div id="dashboard" style="display: none;">
+            <div class="controls">
+                <label>Filter by Race:</label>
+                <select id="raceFilter">
+                    <option value="all">All</option>
+                </select>
+
+                <label>Filter by Query:</label>
+                <select id="queryFilter">
+                    <option value="all">All</option>
+                </select>
+
+                <button onclick="resetFilters()">Reset Filters</button>
+                <button onclick="exportData()">Export Analysis</button>
+            </div>
+
+            <div class="stats-grid" id="statsGrid"></div>
+
+            <div class="dashboard-grid">
+                <div class="chart-card">
+                    <h2>Racial Distribution Across Search Queries</h2>
+                    <div id="racialDistribution" class="chart"></div>
+                    <div id="racialDistributionLegend" class="legend"></div>
+                </div>
+
+                <div class="chart-card">
+                    <h2>View Count Disparities by Race</h2>
+                    <div id="viewDisparities" class="chart"></div>
+                </div>
+
+                <div class="chart-card">
+                    <h2>Shorts vs. Regular Content Distribution</h2>
+                    <div id="contentTypeBreakdown" class="chart"></div>
+                    <div id="contentTypeLegend" class="legend"></div>
+                </div>
+
+                <div class="chart-card">
+                    <h2>Content Type by Race</h2>
+                    <div id="contentTypeByRace" class="chart"></div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2>Algorithmic Pattern Heatmap</h2>
+                <div id="algorithmicHeatmap" class="chart heatmap-chart"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Color schemes
+        const colorScheme = d3.schemeSet2;
+        const heatmapColors = d3.interpolateRdYlBu;
+
+        // Global data
+        let data = [];
+        let filteredData = [];
+
+        // Tooltip
+        const tooltip = d3.select('body')
+            .append('div')
+            .attr('class', 'tooltip')
+            .style('opacity', 0);
+
+        // File upload handler
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const csv = event.target.result;
+                    data = d3.csvParse(csv);
+                    processData();
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function processData() {
+            // Auto-detect columns
+            const columns = Object.keys(data[0]);
+
+            // Find relevant columns
+            const raceCol = columns.find(c => c.toLowerCase().includes('race') || c.toLowerCase().includes('ethnicity')) || columns[0];
+            const queryCol = columns.find(c => c.toLowerCase().includes('query') || c.toLowerCase().includes('search')) || columns[1];
+            const viewsCol = columns.find(c => c.toLowerCase().includes('view')) || columns[2];
+            const typeCol = columns.find(c => c.toLowerCase().includes('type') || c.toLowerCase().includes('short')) || columns[3];
+
+            // Process data
+            data = data.map(d => ({
+                race: d[raceCol] || 'Unknown',
+                query: d[queryCol] || 'Unknown',
+                views: +d[viewsCol]?.replace(/,/g, '') || 0,
+                type: d[typeCol] || 'Unknown',
+                original: d
+            }));
+
+            filteredData = data;
+
+            // Populate filters
+            populateFilters();
+
+            // Show dashboard
+            document.getElementById('dashboard').style.display = 'block';
+
+            // Create all visualizations
+            updateDashboard();
+        }
+
+        function populateFilters() {
+            const races = [...new Set(data.map(d => d.race))];
+            const queries = [...new Set(data.map(d => d.query))];
+
+            const raceFilter = document.getElementById('raceFilter');
+            const queryFilter = document.getElementById('queryFilter');
+
+            races.forEach(race => {
+                const option = document.createElement('option');
+                option.value = race;
+                option.textContent = race;
+                raceFilter.appendChild(option);
+            });
+
+            queries.forEach(query => {
+                const option = document.createElement('option');
+                option.value = query;
+                option.textContent = query;
+                queryFilter.appendChild(option);
+            });
+
+            raceFilter.addEventListener('change', applyFilters);
+            queryFilter.addEventListener('change', applyFilters);
+        }
+
+        function applyFilters() {
+            const raceFilter = document.getElementById('raceFilter').value;
+            const queryFilter = document.getElementById('queryFilter').value;
+
+            filteredData = data.filter(d => {
+                return (raceFilter === 'all' || d.race === raceFilter) &&
+                       (queryFilter === 'all' || d.query === queryFilter);
+            });
+
+            updateDashboard();
+        }
+
+        function resetFilters() {
+            document.getElementById('raceFilter').value = 'all';
+            document.getElementById('queryFilter').value = 'all';
+            filteredData = data;
+            updateDashboard();
+        }
+
+        function updateDashboard() {
+            createStatsCards();
+            createRacialDistributionChart();
+            createViewDisparitiesChart();
+            createContentTypeBreakdown();
+            createContentTypeByRace();
+            createAlgorithmicHeatmap();
+        }
+
+        function createStatsCards() {
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = '';
+
+            const races = new Set(filteredData.map(d => d.race));
+            const queries = new Set(filteredData.map(d => d.query));
+            const totalViews = d3.sum(filteredData, d => d.views);
+            const avgViews = d3.mean(filteredData, d => d.views);
+
+            const stats = [
+                { label: 'Total Videos', value: filteredData.length.toLocaleString() },
+                { label: 'Unique Races', value: races.size },
+                { label: 'Search Queries', value: queries.size },
+                { label: 'Total Views', value: totalViews.toLocaleString() },
+                { label: 'Average Views', value: Math.round(avgViews).toLocaleString() }
+            ];
+
+            stats.forEach(stat => {
+                const card = document.createElement('div');
+                card.className = 'stat-card';
+                card.innerHTML = `
+                    <div class="stat-label">${stat.label}</div>
+                    <div class="stat-value">${stat.value}</div>
+                `;
+                statsGrid.appendChild(card);
+            });
+        }
+
+        function createRacialDistributionChart() {
+            const container = document.getElementById('racialDistribution');
+            container.innerHTML = '';
+
+            const margin = { top: 20, right: 20, bottom: 80, left: 60 };
+            const width = container.clientWidth - margin.left - margin.right;
+            const height = 400 - margin.top - margin.bottom;
+
+            const svg = d3.select('#racialDistribution')
+                .append('svg')
+                .attr('width', width + margin.left + margin.right)
+                .attr('height', height + margin.top + margin.bottom)
+                .append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            // Group data by query and race
+            const grouped = d3.rollup(filteredData,
+                v => v.length,
+                d => d.query,
+                d => d.race
+            );
+
+            const queries = Array.from(grouped.keys());
+            const races = [...new Set(filteredData.map(d => d.race))];
+
+            // Prepare data for stacked bar chart
+            const stackData = queries.map(query => {
+                const obj = { query };
+                races.forEach(race => {
+                    obj[race] = grouped.get(query)?.get(race) || 0;
+                });
+                return obj;
+            });
+
+            const stack = d3.stack().keys(races)(stackData);
+
+            // Scales
+            const x = d3.scaleBand()
+                .domain(queries)
+                .range([0, width])
+                .padding(0.3);
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(stack, d => d3.max(d, d => d[1]))])
+                .nice()
+                .range([height, 0]);
+
+            const color = d3.scaleOrdinal()
+                .domain(races)
+                .range(colorScheme);
+
+            // Draw bars
+            svg.selectAll('g.series')
+                .data(stack)
+                .join('g')
+                .attr('class', 'series')
+                .attr('fill', d => color(d.key))
+                .selectAll('rect')
+                .data(d => d)
+                .join('rect')
+                .attr('class', 'bar')
+                .attr('x', d => x(d.data.query))
+                .attr('y', d => y(d[1]))
+                .attr('height', d => y(d[0]) - y(d[1]))
+                .attr('width', x.bandwidth())
+                .on('mouseover', function(event, d) {
+                    const race = d3.select(this.parentNode).datum().key;
+                    tooltip.transition().duration(200).style('opacity', .9);
+                    tooltip.html(`Query: ${d.data.query}<br/>Race: ${race}<br/>Count: ${d[1] - d[0]}`)
+                        .style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 28) + 'px');
+                })
+                .on('mouseout', function() {
+                    tooltip.transition().duration(500).style('opacity', 0);
+                });
+
+            // Axes
+            svg.append('g')
+                .attr('class', 'axis')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(x))
+                .selectAll('text')
+                .attr('transform', 'rotate(-45)')
+                .style('text-anchor', 'end');
+
+            svg.append('g')
+                .attr('class', 'axis')
+                .call(d3.axisLeft(y));
+
+            // Legend
+            const legend = document.getElementById('racialDistributionLegend');
+            legend.innerHTML = '';
+            races.forEach(race => {
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.innerHTML = `
+                    <div class="legend-color" style="background-color: ${color(race)}"></div>
+                    <span>${race}</span>
+                `;
+                legend.appendChild(item);
+            });
+        }
+
+        function createViewDisparitiesChart() {
+            const container = document.getElementById('viewDisparities');
+            container.innerHTML = '';
+
+            const margin = { top: 20, right: 20, bottom: 60, left: 80 };
+            const width = container.clientWidth - margin.left - margin.right;
+            const height = 400 - margin.top - margin.bottom;
+
+            const svg = d3.select('#viewDisparities')
+                .append('svg')
+                .attr('width', width + margin.left + margin.right)
+                .attr('height', height + margin.top + margin.bottom)
+                .append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            // Calculate average views by race
+            const raceViews = d3.rollup(filteredData,
+                v => d3.mean(v, d => d.views),
+                d => d.race
+            );
+
+            const raceData = Array.from(raceViews, ([race, avgViews]) => ({ race, avgViews }))
+                .sort((a, b) => b.avgViews - a.avgViews);
+
+            // Scales
+            const x = d3.scaleBand()
+                .domain(raceData.map(d => d.race))
+                .range([0, width])
+                .padding(0.3);
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(raceData, d => d.avgViews)])
+                .nice()
+                .range([height, 0]);
+
+            const color = d3.scaleOrdinal()
+                .domain(raceData.map(d => d.race))
+                .range(colorScheme);
+
+            // Draw bars
+            svg.selectAll('.bar')
+                .data(raceData)
+                .join('rect')
+                .attr('class', 'bar')
+                .attr('x', d => x(d.race))
+                .attr('y', d => y(d.avgViews))
+                .attr('width', x.bandwidth())
+                .attr('height', d => height - y(d.avgViews))
+                .attr('fill', d => color(d.race))
+                .on('mouseover', function(event, d) {
+                    tooltip.transition().duration(200).style('opacity', .9);
+                    tooltip.html(`Race: ${d.race}<br/>Avg Views: ${Math.round(d.avgViews).toLocaleString()}`)
+                        .style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 28) + 'px');
+                })
+                .on('mouseout', function() {
+                    tooltip.transition().duration(500).style('opacity', 0);
+                });
+
+            // Axes
+            svg.append('g')
+                .attr('class', 'axis')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(x))
+                .selectAll('text')
+                .attr('transform', 'rotate(-45)')
+                .style('text-anchor', 'end');
+
+            svg.append('g')
+                .attr('class', 'axis')
+                .call(d3.axisLeft(y).tickFormat(d => d.toLocaleString()));
+
+            // Y-axis label
+            svg.append('text')
+                .attr('transform', 'rotate(-90)')
+                .attr('y', 0 - margin.left)
+                .attr('x', 0 - (height / 2))
+                .attr('dy', '1em')
+                .style('text-anchor', 'middle')
+                .style('font-size', '12px')
+                .text('Average Views');
+        }
+
+        function createContentTypeBreakdown() {
+            const container = document.getElementById('contentTypeBreakdown');
+            container.innerHTML = '';
+
+            const width = container.clientWidth;
+            const height = 400;
+            const radius = Math.min(width, height) / 2 - 40;
+
+            const svg = d3.select('#contentTypeBreakdown')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height)
+                .append('g')
+                .attr('transform', `translate(${width / 2},${height / 2})`);
+
+            // Count by type
+            const typeCount = d3.rollup(filteredData,
+                v => v.length,
+                d => d.type
+            );
+
+            const pieData = Array.from(typeCount, ([type, count]) => ({ type, count }));
+
+            const pie = d3.pie()
+                .value(d => d.count)
+                .sort(null);
+
+            const arc = d3.arc()
+                .innerRadius(0)
+                .outerRadius(radius);
+
+            const color = d3.scaleOrdinal()
+                .domain(pieData.map(d => d.type))
+                .range(d3.schemePastel1);
+
+            const arcs = svg.selectAll('arc')
+                .data(pie(pieData))
+                .join('g')
+                .attr('class', 'arc');
+
+            arcs.append('path')
+                .attr('d', arc)
+                .attr('fill', d => color(d.data.type))
+                .attr('stroke', 'white')
+                .style('stroke-width', '2px')
+                .on('mouseover', function(event, d) {
+                    tooltip.transition().duration(200).style('opacity', .9);
+                    const percentage = ((d.data.count / filteredData.length) * 100).toFixed(1);
+                    tooltip.html(`${d.data.type}<br/>Count: ${d.data.count}<br/>Percentage: ${percentage}%`)
+                        .style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 28) + 'px');
+                })
+                .on('mouseout', function() {
+                    tooltip.transition().duration(500).style('opacity', 0);
+                });
+
+            arcs.append('text')
+                .attr('transform', d => `translate(${arc.centroid(d)})`)
+                .attr('text-anchor', 'middle')
+                .style('font-size', '14px')
+                .style('font-weight', 'bold')
+                .text(d => {
+                    const percentage = ((d.data.count / filteredData.length) * 100).toFixed(0);
+                    return percentage > 5 ? `${percentage}%` : '';
+                });
+
+            // Legend
+            const legend = document.getElementById('contentTypeLegend');
+            legend.innerHTML = '';
+            pieData.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'legend-item';
+                div.innerHTML = `
+                    <div class="legend-color" style="background-color: ${color(item.type)}"></div>
+                    <span>${item.type} (${item.count})</span>
+                `;
+                legend.appendChild(div);
+            });
+        }
+
+        function createContentTypeByRace() {
+            const container = document.getElementById('contentTypeByRace');
+            container.innerHTML = '';
+
+            const margin = { top: 20, right: 20, bottom: 80, left: 60 };
+            const width = container.clientWidth - margin.left - margin.right;
+            const height = 400 - margin.top - margin.bottom;
+
+            const svg = d3.select('#contentTypeByRace')
+                .append('svg')
+                .attr('width', width + margin.left + margin.right)
+                .attr('height', height + margin.top + margin.bottom)
+                .append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            // Group by race and type
+            const grouped = d3.rollup(filteredData,
+                v => v.length,
+                d => d.race,
+                d => d.type
+            );
+
+            const races = Array.from(grouped.keys());
+            const types = [...new Set(filteredData.map(d => d.type))];
+
+            const stackData = races.map(race => {
+                const obj = { race };
+                types.forEach(type => {
+                    obj[type] = grouped.get(race)?.get(type) || 0;
+                });
+                return obj;
+            });
+
+            const stack = d3.stack().keys(types)(stackData);
+
+            const x = d3.scaleBand()
+                .domain(races)
+                .range([0, width])
+                .padding(0.3);
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(stack, d => d3.max(d, d => d[1]))])
+                .nice()
+                .range([height, 0]);
+
+            const color = d3.scaleOrdinal()
+                .domain(types)
+                .range(d3.schemePastel1);
+
+            svg.selectAll('g.series')
+                .data(stack)
+                .join('g')
+                .attr('class', 'series')
+                .attr('fill', d => color(d.key))
+                .selectAll('rect')
+                .data(d => d)
+                .join('rect')
+                .attr('class', 'bar')
+                .attr('x', d => x(d.data.race))
+                .attr('y', d => y(d[1]))
+                .attr('height', d => y(d[0]) - y(d[1]))
+                .attr('width', x.bandwidth())
+                .on('mouseover', function(event, d) {
+                    const type = d3.select(this.parentNode).datum().key;
+                    tooltip.transition().duration(200).style('opacity', .9);
+                    tooltip.html(`Race: ${d.data.race}<br/>Type: ${type}<br/>Count: ${d[1] - d[0]}`)
+                        .style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 28) + 'px');
+                })
+                .on('mouseout', function() {
+                    tooltip.transition().duration(500).style('opacity', 0);
+                });
+
+            svg.append('g')
+                .attr('class', 'axis')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(x))
+                .selectAll('text')
+                .attr('transform', 'rotate(-45)')
+                .style('text-anchor', 'end');
+
+            svg.append('g')
+                .attr('class', 'axis')
+                .call(d3.axisLeft(y));
+        }
+
+        function createAlgorithmicHeatmap() {
+            const container = document.getElementById('algorithmicHeatmap');
+            container.innerHTML = '';
+
+            const margin = { top: 20, right: 100, bottom: 100, left: 100 };
+            const width = container.clientWidth - margin.left - margin.right;
+            const height = 500 - margin.top - margin.bottom;
+
+            const svg = d3.select('#algorithmicHeatmap')
+                .append('svg')
+                .attr('width', width + margin.left + margin.right)
+                .attr('height', height + margin.top + margin.bottom)
+                .append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            // Calculate average views by race and query
+            const heatmapData = [];
+            const races = [...new Set(filteredData.map(d => d.race))];
+            const queries = [...new Set(filteredData.map(d => d.query))];
+
+            races.forEach(race => {
+                queries.forEach(query => {
+                    const items = filteredData.filter(d => d.race === race && d.query === query);
+                    const avgViews = items.length > 0 ? d3.mean(items, d => d.views) : 0;
+                    heatmapData.push({ race, query, avgViews, count: items.length });
+                });
+            });
+
+            const x = d3.scaleBand()
+                .domain(queries)
+                .range([0, width])
+                .padding(0.05);
+
+            const y = d3.scaleBand()
+                .domain(races)
+                .range([0, height])
+                .padding(0.05);
+
+            const maxViews = d3.max(heatmapData, d => d.avgViews);
+            const color = d3.scaleSequential()
+                .interpolator(d3.interpolateYlOrRd)
+                .domain([0, maxViews]);
+
+            // Draw heatmap
+            svg.selectAll('rect')
+                .data(heatmapData)
+                .join('rect')
+                .attr('x', d => x(d.query))
+                .attr('y', d => y(d.race))
+                .attr('width', x.bandwidth())
+                .attr('height', y.bandwidth())
+                .attr('fill', d => d.count > 0 ? color(d.avgViews) : '#f0f0f0')
+                .attr('stroke', 'white')
+                .attr('stroke-width', 1)
+                .on('mouseover', function(event, d) {
+                    tooltip.transition().duration(200).style('opacity', .9);
+                    tooltip.html(`
+                        Race: ${d.race}<br/>
+                        Query: ${d.query}<br/>
+                        Avg Views: ${Math.round(d.avgViews).toLocaleString()}<br/>
+                        Count: ${d.count}
+                    `)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 28) + 'px');
+                })
+                .on('mouseout', function() {
+                    tooltip.transition().duration(500).style('opacity', 0);
+                });
+
+            // Axes
+            svg.append('g')
+                .attr('class', 'axis')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(x))
+                .selectAll('text')
+                .attr('transform', 'rotate(-45)')
+                .style('text-anchor', 'end');
+
+            svg.append('g')
+                .attr('class', 'axis')
+                .call(d3.axisLeft(y));
+
+            // Color legend
+            const legendWidth = 20;
+            const legendHeight = height;
+
+            const legendScale = d3.scaleLinear()
+                .domain([0, maxViews])
+                .range([legendHeight, 0]);
+
+            const legendAxis = d3.axisRight(legendScale)
+                .tickFormat(d => d.toLocaleString());
+
+            const legend = svg.append('g')
+                .attr('transform', `translate(${width + 20}, 0)`);
+
+            const defs = svg.append('defs');
+            const gradient = defs.append('linearGradient')
+                .attr('id', 'legend-gradient')
+                .attr('x1', '0%')
+                .attr('y1', '100%')
+                .attr('x2', '0%')
+                .attr('y2', '0%');
+
+            gradient.selectAll('stop')
+                .data(d3.range(0, 1.1, 0.1))
+                .join('stop')
+                .attr('offset', d => `${d * 100}%`)
+                .attr('stop-color', d => color(d * maxViews));
+
+            legend.append('rect')
+                .attr('width', legendWidth)
+                .attr('height', legendHeight)
+                .style('fill', 'url(#legend-gradient)');
+
+            legend.append('g')
+                .attr('transform', `translate(${legendWidth}, 0)`)
+                .call(legendAxis);
+        }
+
+        function exportData() {
+            // Create summary report
+            const races = [...new Set(filteredData.map(d => d.race))];
+            const report = [];
+
+            report.push('YouTube Algorithmic Bias Analysis Report');
+            report.push('='.repeat(50));
+            report.push(`Generated: ${new Date().toLocaleString()}`);
+            report.push(`Total Videos: ${filteredData.length}`);
+            report.push('');
+
+            races.forEach(race => {
+                const raceData = filteredData.filter(d => d.race === race);
+                const avgViews = d3.mean(raceData, d => d.views);
+                const totalViews = d3.sum(raceData, d => d.views);
+
+                report.push(`${race}:`);
+                report.push(`  Videos: ${raceData.length}`);
+                report.push(`  Average Views: ${Math.round(avgViews).toLocaleString()}`);
+                report.push(`  Total Views: ${totalViews.toLocaleString()}`);
+                report.push('');
+            });
+
+            const blob = new Blob([report.join('\n')], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'youtube_bias_analysis.txt';
+            a.click();
+        }
+    </script>
+</body>
+</html>

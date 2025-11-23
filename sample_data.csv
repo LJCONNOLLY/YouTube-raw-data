@@ -1,0 +1,67 @@
+Race/Ethnicity,Search Query,View Count,Content Type,Position,Upload Date,Channel Name
+Asian,makeup tutorial,1500000,Regular,1,2024-01-15,BeautyByAsia
+Black,makeup tutorial,2300000,Shorts,2,2024-01-16,MelaninMakeup
+Hispanic,makeup tutorial,890000,Regular,3,2024-01-14,LatinBeauty
+White,makeup tutorial,3200000,Regular,4,2024-01-13,GlamGuru
+Asian,makeup tutorial,450000,Shorts,5,2024-01-17,QuickGlam
+Middle Eastern,makeup tutorial,670000,Regular,6,2024-01-12,DesertRose
+Black,cooking,1800000,Regular,1,2024-02-01,SoulFoodKitchen
+Asian,cooking,2100000,Shorts,2,2024-02-02,WokMaster
+Hispanic,cooking,1200000,Regular,3,2024-02-03,SaborLatino
+White,cooking,2800000,Regular,4,2024-01-30,HomeChef
+Asian,cooking,890000,Shorts,5,2024-02-04,QuickRecipes
+Black,cooking,560000,Shorts,6,2024-02-01,SpiceItUp
+White,fitness,4500000,Regular,1,2024-03-01,FitLife
+Black,fitness,1900000,Shorts,2,2024-03-02,StrengthAndPower
+Asian,fitness,1100000,Regular,3,2024-03-03,YogaFlow
+Hispanic,fitness,890000,Shorts,4,2024-03-04,FitLatino
+White,fitness,3200000,Shorts,5,2024-03-05,GymMotivation
+Middle Eastern,fitness,450000,Regular,6,2024-03-01,HealthyLiving
+Black,hair care,3400000,Regular,1,2024-04-01,NaturalHairJourney
+White,hair care,2100000,Regular,2,2024-04-02,SalonSecrets
+Asian,hair care,670000,Shorts,3,2024-04-03,HairHacks
+Hispanic,hair care,890000,Regular,4,2024-04-04,RizosNaturales
+Black,hair care,1500000,Shorts,5,2024-04-05,ProtectiveStyles
+Asian,hair care,340000,Regular,6,2024-04-01,SilkyStrands
+White,fashion,5600000,Regular,1,2024-05-01,StyleIcon
+Black,fashion,2300000,Shorts,2,2024-05-02,StreetStyle
+Asian,fashion,1700000,Regular,3,2024-05-03,KoreanFashion
+Hispanic,fashion,1100000,Shorts,4,2024-05-04,ModaLatina
+White,fashion,4200000,Regular,5,2024-05-05,LuxuryLifestyle
+Middle Eastern,fashion,780000,Regular,6,2024-05-01,ModestFashion
+Asian,gaming,6700000,Regular,1,2024-06-01,ProGamer
+White,gaming,8900000,Regular,2,2024-06-02,GamePlayHD
+Black,gaming,2100000,Shorts,3,2024-06-03,ConsoleKing
+Hispanic,gaming,1500000,Regular,4,2024-06-04,GamerLatino
+Asian,gaming,3400000,Shorts,5,2024-06-05,MobileGaming
+White,gaming,5600000,Regular,6,2024-06-01,StreamerPro
+Black,music,8900000,Regular,1,2024-07-01,RnBVibes
+Hispanic,music,4500000,Shorts,2,2024-07-02,ReggaetonHits
+Asian,music,2100000,Regular,3,2024-07-03,KPopCentral
+White,music,7800000,Regular,4,2024-07-04,PopMusic
+Black,music,3400000,Shorts,5,2024-07-05,HipHopDaily
+Asian,music,1900000,Regular,6,2024-07-01,JPop
+White,travel,3400000,Regular,1,2024-08-01,WanderlustDiaries
+Asian,travel,2800000,Shorts,2,2024-08-02,AsiaExplorer
+Hispanic,travel,1700000,Regular,3,2024-08-03,LatinAmerica
+Black,travel,1200000,Shorts,4,2024-08-04,AfricanAdventures
+White,travel,4500000,Regular,5,2024-08-05,EuropeTravel
+Middle Eastern,travel,890000,Regular,6,2024-08-01,MiddleEastJourneys
+Black,tech reviews,1500000,Regular,1,2024-09-01,TechUnboxed
+Asian,tech reviews,3400000,Shorts,2,2024-09-02,GadgetReview
+White,tech reviews,5600000,Regular,3,2024-09-03,TechGuru
+Hispanic,tech reviews,1100000,Shorts,4,2024-09-04,TechEnEspanol
+Asian,tech reviews,2800000,Regular,5,2024-09-05,PhoneReviews
+White,tech reviews,4200000,Regular,6,2024-09-01,LatestGadgets
+White,comedy,6700000,Shorts,1,2024-10-01,LaughOut
+Black,comedy,4500000,Regular,2,2024-10-02,StandUpDaily
+Hispanic,comedy,2100000,Shorts,3,2024-10-03,ComedyLatino
+Asian,comedy,1700000,Regular,4,2024-10-04,FunnyAsian
+White,comedy,5600000,Shorts,5,2024-10-05,PrankMaster
+Black,comedy,3400000,Regular,6,2024-10-01,SketchComedy
+Asian,education,2100000,Regular,1,2024-11-01,MathTutorials
+White,education,3800000,Regular,2,2024-11-02,ScienceExplained
+Black,education,1500000,Shorts,3,2024-11-03,HistoryLessons
+Hispanic,education,1100000,Regular,4,2024-11-04,LearnSpanish
+Asian,education,2800000,Shorts,5,2024-11-05,QuickLearning
+White,education,4500000,Regular,6,2024-11-01,CollegePrep
